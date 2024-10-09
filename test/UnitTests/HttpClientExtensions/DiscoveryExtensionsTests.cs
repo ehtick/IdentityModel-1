@@ -74,20 +74,37 @@ namespace IdentityModel.UnitTests
         }
 
 
-        [Theory]
-        [InlineData("https://demo.identityserver.io")]
-        [InlineData("https://demo.identityserver.io/api/v1/")]
-        [InlineData("https://demo.identityserver.io/.well-known/openid-configuration")]
-        public async Task Base_address_should_work(string baseAddress)
+        [Fact]
+        public async Task Base_address_should_work()
         {
             var client = new HttpClient(_successHandler)
             {
-                BaseAddress = new Uri(baseAddress)
+                BaseAddress = new Uri(_endpoint)
             };
 
             var disco = await client.GetDiscoveryDocumentAsync();
 
             disco.IsError.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task Null_client_base_address_should_throw()
+        {
+            var client = new HttpClient(_successHandler) { BaseAddress = null };
+
+            Func<Task> act = () => client.GetDiscoveryDocumentAsync();
+
+            await act.Should().ThrowAsync<ArgumentException>().WithMessage("Either the address parameter or the HttpClient BaseAddress must not be null.");
+        }
+
+        [Fact]
+        public async Task Null_discovery_document_address_should_throw()
+        {
+            var client = new HttpClient(_successHandler) { BaseAddress = null };
+
+            Func<Task> act = () => client.GetDiscoveryDocumentAsync(new DiscoveryDocumentRequest());
+
+            await act.Should().ThrowAsync<ArgumentException>().WithMessage("Either the DiscoveryDocumentRequest Address or the HttpClient BaseAddress must not be null.");
         }
 
         [Fact]
